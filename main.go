@@ -7,7 +7,8 @@ import (
 
 func main() {
 	//chapter1_123()
-	chapter1_4()
+	//chapter1_4()
+	chapter1_5()
 }
 func chapter1_123() {
 	fmt.Println("====================================第一章练习====================================")
@@ -28,5 +29,12 @@ func chapter1_123() {
 
 func chapter1_4() {
 	fmt.Println("====================================第一章练习====================================")
+	// 执行命令 go run main.go web 打开了8000端口，web服务，访问即可看到动画
 	chapters.Paint()
+}
+func chapter1_5() {
+	fmt.Println("====================================第一章练习====================================")
+	//go run main.go http://www.google.com
+	//chapters.Fetch()
+	chapters.Fetch2()
 }
