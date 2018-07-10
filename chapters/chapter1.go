@@ -19,7 +19,7 @@ import (
 
 //模拟unix的echo指令
 //获取命令行参数，第一个参数为可执行文件的路径
-//如go run main.go -id=2 -name="wanghuiyang"，-id=2就是一个arg
+//如go run chapter1Main.go -id=2 -name="wanghuiyang"，-id=2就是一个arg
 func Echo() {
 	var s, sep string
 
@@ -126,6 +126,7 @@ func DupFromFile2() {
 	}
 }
 
+//GIF动画
 var palette = []color.Color{color.White, color.Black}
 
 const (
@@ -133,9 +134,7 @@ const (
 	blackIndex = 1 // next color in palette
 )
 
-//GIF动画
 func Paint() {
-
 	// The sequence of images is deterministic unless we seed
 	// the pseudo-random number generator using the current time.
 	// Thanks to Randall McPherson for pointing out the omission.
@@ -193,12 +192,25 @@ func Fetch() {
 		b, err := ioutil.ReadAll(resp.Body)
 		resp.Body.Close()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "", err)
+			fmt.Fprintf(os.Stderr, "fetch:%v\n", err)
 			os.Exit(1)
 		}
 		fmt.Printf("%s", b)
 	}
 }
+
+type RespWriter struct {
+	Output string
+}
+
+func (r *RespWriter) Write(p []byte) (n int, err error) {
+	for i, _ := range p {
+		r.Output += string(p[i])
+	}
+	return len(p), nil
+}
+
+//改用io.Cpoy 一个个字节读取，不像ReadAll一次性读取整个响应数据流的缓冲区
 func Fetch2() {
 	for _, url := range os.Args[1:] {
 		resp, err := http.Get(url)
@@ -206,13 +218,63 @@ func Fetch2() {
 			fmt.Fprintf(os.Stderr, "fetch:%v\n", err)
 			os.Exit(1)
 		}
-		var b io.Writer
-		bts, err := io.Copy(b, resp.Body)
+		respWriter := &RespWriter{}
+		io.Copy(respWriter, resp.Body)
 		resp.Body.Close()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "", err)
+			fmt.Fprintf(os.Stderr, "fetch:%v\n", err)
 			os.Exit(1)
 		}
-		fmt.Printf("%s", bts)
+		fmt.Printf("%s", string(respWriter.Output))
 	}
+}
+
+//判断前缀
+func Fetch3() {
+	for _, url := range os.Args[1:] {
+		if strings.HasPrefix(url, "http://") == false {
+			url = "http://" + url
+		}
+		resp, err := http.Get(url)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "fetch:%v\n", err)
+			os.Exit(1)
+		}
+		respWriter := &RespWriter{}
+		io.Copy(respWriter, resp.Body)
+		resp.Body.Close()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "fetch:%v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("%s", string(respWriter.Output))
+	}
+}
+
+//goroutine并发执行
+func Fetch4() {
+	start := time.Now()
+	ch := make(chan string)
+	for _, url := range os.Args[1:] {
+		go goroutineFetch(url, ch)
+	}
+	for range os.Args[1:] {
+		fmt.Println(<-ch)
+	}
+	fmt.Printf("%.2f elapsed\n", time.Since(start).Seconds())
+}
+func goroutineFetch(url string, ch chan<- string) {
+	start := time.Now()
+	resp, err := http.Get(url)
+	if err != nil {
+		ch <- fmt.Sprint(err) //发送到通道ch
+		return
+	}
+	nbytes, err := io.Copy(ioutil.Discard, resp.Body)
+	if err != nil {
+		ch <- fmt.Sprint("正在读取%s::%v", url, err)
+		return
+	}
+	secs := time.Since(start).Seconds()
+	ch <- fmt.Sprintf("%.2f  %7d  %s", secs, nbytes, url)
 }
