@@ -11,6 +11,7 @@ func main() {
 	//chapters.Echo4()
 
 	fmt.Println(chapters.GCD(5, 3))
+
 }
 
 //变量指针练习
