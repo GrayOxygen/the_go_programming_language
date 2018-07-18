@@ -19,7 +19,7 @@ import (
 
 //模拟unix的echo指令
 //获取命令行参数，第一个参数为可执行文件的路径
-//如go run chapter1Main.go -id=2 -name="wanghuiyang"，-id=2就是一个arg
+//如go run chapter1_main.go -id=2 -name="wanghuiyang"，-id=2就是一个arg
 func Echo() {
 	var s, sep string
 

@@ -7,7 +7,7 @@ import (
 
 func main() {
 	//typepoint()
-	//go run chapter2Main.go -n -s 分割 shi ni hello 00 yeah
+	//go run chapter2_main.go -n -s 分割 shi ni hello 00 yeah
 	//chapters.Echo4()
 
 	fmt.Println(chapters.GCD(5, 3))
