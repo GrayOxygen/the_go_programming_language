@@ -65,3 +65,58 @@ func echo(c net.Conn, shout string, delay time.Duration) {
 	time.Sleep(delay)
 	fmt.Fprintln(c, "\t", strings.ToLower(shout))
 }
+
+func PipeLine() {
+	naturals := make(chan int)
+	squares := make(chan int)
+	go func() {
+		for x := 0; x < 6; x++ {
+			naturals <- x
+		}
+		close(naturals)
+	}()
+	go func() {
+		//channel没有数据时，自动退出循环
+		for x := range naturals {
+			squares <- x * x
+		}
+		close(squares)
+	}()
+	for {
+		fmt.Println(<-squares)
+	}
+}
+
+//单向通道，双向通道可转换为单向通道，反过来不行
+func PipeLine2() {
+	naturals := make(chan int)
+	squarers := make(chan int)
+	go counter(naturals)
+	go squarer(squarers, naturals)
+	printer(squarers)
+}
+func counter(out chan<- int) {
+	for x := 0; x < 11; x++ {
+		out <- x
+	}
+	close(out)
+}
+func squarer(out chan<- int, in <-chan int) {
+	for v := range in {
+		out <- v * v
+	}
+	close(out)
+}
+func printer(in <-chan int) {
+	for v := range in {
+		fmt.Println(v)
+	}
+}
+
+func CountDown1() {
+	tick := time.Tick(1 * time.Second)
+	for countdown := 10; countdown > 0; countdown-- {
+		fmt.Println(countdown)
+		<-tick
+	}
+}
